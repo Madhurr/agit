@@ -40,7 +40,7 @@ func runContextShow(cmd *cobra.Command, args []string) error {
 	}
 
 	var commitHash string
-	if len(args) == 0 {
+	if len(args) == 0 || args[0] == "HEAD" {
 		commitHash, err = git.HeadHash(dir)
 		if err != nil {
 			return fmt.Errorf("get HEAD: %w", err)

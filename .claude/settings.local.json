@@ -5,7 +5,10 @@
       "Bash(curl -s http://localhost:11434/api/tags)",
       "Bash(python3 -m json.tool)",
       "Bash(python3 scripts/gen.py prompts/02_notes.txt internal/notes/notes.go)",
-      "Bash(go build ./...)"
+      "Bash(go build ./...)",
+      "Bash(test -d /home/madhur/agit/.git)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(m[''name'']\\) for m in data.get\\(''models'',[]\\)]\")",
+      "Bash(./agit commit -m \"fix: resolve HEAD argument in context show command\" --intent \"Fix ''agit context show HEAD'' displaying ''HEAD — HEAD'' instead of real commit hash\" --confidence 0.98 --confidence-rationale \"Simple one-line fix, tested and verified\" --task \"Fix context show HEAD displaying literal HEAD string instead of resolving hash\")"
     ]
   }
 }
