@@ -1,0 +1,56 @@
+You are writing Go code for a project called agit (Agent-Native Git Middleware).
+Module path: github.com/madhurm/agit
+Go version: 1.22
+Output file: cmd/log.go
+
+This file implements the "agit log" cobra command.
+It shows a semantic git log enriched with agit notes where available.
+
+Available imports:
+- "fmt"
+- "os"
+- "strings"
+- "github.com/spf13/cobra"
+- "github.com/fatih/color"
+- "github.com/madhurm/agit/internal/git"
+- "github.com/madhurm/agit/internal/notes"
+
+Command: agit log
+
+Flags:
+  -n, --count int   number of commits to show (default 10)
+  --json            output as JSON array
+
+Behavior:
+1. Get working dir with os.Getwd()
+2. Call git.Log(dir, n) to get last n commits
+3. For each commit, call notes.Read(dir, entry.Hash)
+4. Print each commit in this format:
+
+Without agit note:
+  <yellow shortHash>  <subject>  <dim timestamp "2 Jan 2006">
+                <dim "· " + author>
+
+With agit note:
+  <yellow shortHash>  <subject>  <dim timestamp>  [<confidence color>confidence%]  [<risk color if any risks>risk]
+                <dim "· " + author>
+                intent: <green intent text>
+                tried:  <dim "JWT (too complex), OAuth (overkill)"> — comma-join approach names only
+
+Confidence color: >= 0.8 green, >= 0.5 yellow, < 0.5 red
+Risk color: if any high → red "risk:high", any medium → yellow "risk:medium", else cyan "risk:low"
+Only show risk badge if risks slice is non-empty.
+
+Timestamp format: use time format "2 Jan 2006"
+
+If --json flag: marshal the full array of structs to JSON and print.
+Create a struct for JSON output:
+type LogOutput struct {
+    Commit git.LogEntry
+    Note   *notes.CommitNote
+}
+
+Add logCmd to rootCmd in init().
+
+Output ONLY the raw Go source code. No markdown, no explanation, no code fences.
+Start directly with: package cmd

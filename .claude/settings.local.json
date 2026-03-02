@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /home/madhur/go*)",
+      "Bash(curl -s http://localhost:11434/api/tags)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 scripts/gen.py prompts/02_notes.txt internal/notes/notes.go)",
+      "Bash(go build ./...)"
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+You are writing Go code for a project called agit (Agent-Native Git Middleware).
+Module path: github.com/madhurm/agit
+Go version: 1.22
+Output file: cmd/context.go
+
+This file implements the "agit context" cobra subcommand with one sub-subcommand: "show".
+
+Available imports:
+- "encoding/json"
+- "fmt"
+- "os"
+- "strings"
+- "github.com/spf13/cobra"
+- "github.com/fatih/color"
+- "github.com/madhurm/agit/internal/git"
+- "github.com/madhurm/agit/internal/notes"
+
+Commands to implement:
+
+--- agit context show [hash] ---
+If hash is omitted, use HEAD.
+Resolves the hash with git.HeadHash if empty.
+
+Output (pretty-print, NOT json by default):
+
+  Commit:  <short hash> — <full hash>
+  Task:    <task> (skip line if empty)
+  Intent:  <intent> (skip line if empty)
+  Confidence: <confidence as percentage, e.g. "85%"> — "<confidence_rationale>" (skip if 0)
+
+  Agent: <agent.id> (<agent.model>) session:<agent.session_id> (skip if all empty)
+
+  Alternatives rejected:
+    • <approach> — <rejected_reason>
+    (skip entire section if empty)
+
+  Key decisions:
+    • <decision>: <rationale>
+    (skip entire section if empty)
+
+  Risks:
+    [<severity>] <area>: <description>
+    (skip entire section if empty)
+
+  Context consulted:
+    • <item>
+    (skip entire section if empty)
+
+  Ripple effects (check these):
+    • <item>
+    (skip entire section if empty)
+
+  Unknowns:
+    • <item>
+    (skip entire section if empty)
+
+  Test results: <passed> passed, <failed> failed, <skipped> skipped  (skip if nil)
+
+Use color:
+- Section headers (e.g. "Alternatives rejected:") in bold yellow
+- "✓" markers in green
+- Risk [high] in red, [medium] in yellow, [low] in cyan
+- Confidence >= 0.8 in green, >= 0.5 in yellow, < 0.5 in red
+
+If --json flag is passed, print raw JSON instead of pretty output.
+
+If no note exists for the commit, print:
+  "No agit note found for <hash>. Commit was not made with agit."
+
+Flag:
+  --json   output raw JSON
+
+Register as: contextCmd with subcommand showCmd.
+Add contextCmd to rootCmd in init().
+
+Output ONLY the raw Go source code. No markdown, no explanation, no code fences.
+Start directly with: package cmd

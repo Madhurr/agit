@@ -1,0 +1,69 @@
+You are writing Go code for a project called agit (Agent-Native Git Middleware).
+Module path: github.com/madhurm/agit
+Go version: 1.22
+Output file: internal/git/git.go
+
+This package shells out to the git CLI using os/exec. Do NOT use any git library.
+Use only Go standard library: os/exec, strings, time, fmt, errors, bytes.
+
+Implement exactly these exported types and functions:
+
+---
+
+// Package git provides a thin wrapper around the git CLI for agit operations.
+package git
+
+// RunGit runs a git command in dir, returns stdout output trimmed.
+// Returns error containing stderr if exit code != 0.
+func RunGit(dir string, args ...string) (string, error)
+
+// RepoRoot returns absolute path to the git repo root containing dir.
+// Calls: git rev-parse --show-toplevel
+func RepoRoot(dir string) (string, error)
+
+// HeadHash returns full 40-char SHA of HEAD.
+// Calls: git rev-parse HEAD
+func HeadHash(dir string) (string, error)
+
+// IsRepo returns true if dir is inside a git repository.
+func IsRepo(dir string) bool
+
+// CommitWithMessage runs: git add -u && git commit -m message
+// Returns full SHA of the new commit (calls HeadHash after commit).
+func CommitWithMessage(dir, message string) (string, error)
+
+// StageAll runs: git add -A
+func StageAll(dir string) error
+
+// LogEntry represents a single commit in git history.
+type LogEntry struct {
+	Hash      string
+	ShortHash string
+	Subject   string
+	Author    string
+	Timestamp time.Time
+}
+
+// Log returns last n commits.
+// Parses: git log --format="%H|%h|%s|%an|%aI" -n <n>
+// Split each line on "|" into exactly 5 fields.
+// Parse Timestamp with time.Parse(time.RFC3339, field[4])
+func Log(dir string, n int) ([]LogEntry, error)
+
+// DiffFiles returns file paths changed in commitHash vs its parent.
+// Calls: git diff-tree --no-commit-id -r --name-only <commitHash>
+// Returns slice of trimmed file path strings.
+func DiffFiles(dir, commitHash string) ([]string, error)
+
+---
+
+Implementation rules:
+- RunGit is the base function. All other functions call RunGit.
+- In RunGit: use exec.Command("git", args...), set cmd.Dir = dir
+- Capture stdout and stderr separately. On non-zero exit, return error with stderr content.
+- Trim all whitespace from string outputs using strings.TrimSpace.
+- For Log: skip empty lines when splitting output.
+- For DiffFiles: skip empty lines when splitting output.
+
+Output ONLY the raw Go source code. No markdown, no explanation, no code fences.
+Start directly with: // Package git

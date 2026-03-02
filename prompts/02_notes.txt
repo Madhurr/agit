@@ -1,0 +1,91 @@
+You are writing Go code for a project called agit (Agent-Native Git Middleware).
+Module path: github.com/madhurm/agit
+Go version: 1.22
+Output file: internal/notes/notes.go
+
+This package reads and writes agent metadata to git notes using the ref "agit".
+It shells out to git CLI via the internal/git package. Use only stdlib + the git package.
+
+Imports available:
+- "encoding/json"
+- "fmt"
+- "strings"
+- "github.com/madhurm/agit/internal/git"
+
+The metadata stored in each git note is this JSON struct:
+
+type Alternative struct {
+	Approach       string `json:"approach"`
+	RejectedReason string `json:"rejected_reason"`
+}
+
+type KeyDecision struct {
+	Decision  string `json:"decision"`
+	Rationale string `json:"rationale"`
+}
+
+type Risk struct {
+	Area        string `json:"area"`
+	Description string `json:"description"`
+	Severity    string `json:"severity"` // "low", "medium", "high"
+}
+
+type TestResults struct {
+	Passed  int    `json:"passed"`
+	Failed  int    `json:"failed"`
+	Skipped int    `json:"skipped"`
+	Command string `json:"command"`
+}
+
+type AgentInfo struct {
+	ID        string `json:"id"`
+	Model     string `json:"model"`
+	SessionID string `json:"session_id"`
+}
+
+type CommitNote struct {
+	SchemaVersion        string        `json:"schema_version"`
+	CommitHash           string        `json:"commit_hash"`
+	Agent                AgentInfo     `json:"agent"`
+	Task                 string        `json:"task"`
+	Intent               string        `json:"intent"`
+	Confidence           float64       `json:"confidence"`
+	ConfidenceRationale  string        `json:"confidence_rationale"`
+	AlternativesConsidered []Alternative `json:"alternatives_considered"`
+	KeyDecisions         []KeyDecision `json:"key_decisions"`
+	Risks                []Risk        `json:"risks"`
+	ContextConsulted     []string      `json:"context_consulted"`
+	TestResults          *TestResults  `json:"test_results,omitempty"`
+	RippleEffects        []string      `json:"ripple_effects"`
+	Unknowns             []string      `json:"unknowns"`
+}
+
+Implement exactly these functions in package notes:
+
+// Write serializes note to JSON and stores it on commitHash using:
+//   git notes --ref=agit add -f -m <json> <commitHash>
+// The -f flag forces overwrite if a note already exists.
+func Write(dir, commitHash string, note *CommitNote) error
+
+// Read retrieves and deserializes the agit note for commitHash using:
+//   git notes --ref=agit show <commitHash>
+// Returns (nil, nil) if no note exists for this commit (not an error).
+func Read(dir, commitHash string) (*CommitNote, error)
+
+// Exists returns true if a note exists for commitHash.
+func Exists(dir, commitHash string) bool
+
+// Delete removes the agit note for commitHash using:
+//   git notes --ref=agit remove <commitHash>
+func Delete(dir, commitHash string) error
+
+Implementation rules:
+- For Write: marshal to JSON with json.Marshal, pass the JSON string as the -m argument
+- For Read: if git.RunGit returns error containing "No note found", return nil, nil
+  Check with strings.Contains(err.Error(), "No note found")
+- All types (CommitNote, Alternative, etc.) defined in this same file
+- Package name: notes
+- Package doc comment: // Package notes reads and writes agit metadata to git notes.
+
+Output ONLY the raw Go source code. No markdown, no explanation, no code fences.
+Start directly with: // Package notes

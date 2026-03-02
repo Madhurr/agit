@@ -1,0 +1,43 @@
+You are writing Go code for a project called agit (Agent-Native Git Middleware).
+Module path: github.com/madhurm/agit
+Go version: 1.22
+Output file: cmd/init.go
+
+This file implements the "agit init" cobra command.
+It sets up agit in an existing git repository by configuring git to fetch/push notes automatically.
+
+Available imports:
+- "fmt"
+- "os"
+- "github.com/spf13/cobra"
+- "github.com/fatih/color"
+- "github.com/madhurm/agit/internal/git"
+
+Command: agit init
+
+No flags needed.
+
+Behavior:
+1. Get working dir with os.Getwd()
+2. Check git.IsRepo(dir) — if false, print error "not a git repository" and return error
+3. Run these git config commands via git.RunGit:
+   a. git config --add remote.origin.fetch "+refs/notes/agit:refs/notes/agit"
+      (so git fetch also fetches agit notes)
+      Ignore error on this one if origin doesn't exist yet.
+   b. git config notes.rewriteRef "refs/notes/agit"
+      (so git rebase/cherry-pick carries notes forward)
+4. Print success output:
+   green "✓ agit initialized in this repository"
+   normal ""
+   normal "To push notes to remote:"
+   cyan   "  git push origin refs/notes/agit"
+   normal ""
+   normal "To fetch notes from remote:"
+   cyan   "  git fetch origin refs/notes/agit:refs/notes/agit"
+   normal ""
+   normal "Agents should now use 'agit commit' instead of 'git commit'."
+
+Add initCmd to rootCmd in init().
+
+Output ONLY the raw Go source code. No markdown, no explanation, no code fences.
+Start directly with: package cmd

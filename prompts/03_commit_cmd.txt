@@ -1,0 +1,68 @@
+You are writing Go code for a project called agit (Agent-Native Git Middleware).
+Module path: github.com/madhurm/agit
+Go version: 1.22
+Output file: cmd/commit.go
+
+This file implements the "agit commit" cobra command.
+It wraps git commit and stores rich agent metadata as a git note.
+
+Available imports:
+- "encoding/json"
+- "fmt"
+- "os"
+- "strconv"
+- "strings"
+- "time"
+- "github.com/spf13/cobra"
+- "github.com/fatih/color"
+- "github.com/madhurm/agit/internal/git"
+- "github.com/madhurm/agit/internal/notes"
+
+The command signature:
+  agit commit -m "message" [flags]
+
+Flags (all optional except -m):
+  -m, --message string         commit message (required)
+  --intent string              what the agent was trying to accomplish
+  --confidence float           confidence 0.0-1.0 (default 0)
+  --confidence-rationale string  why this confidence level
+  --tried stringArray          repeatable: "approach: rejection reason"
+                               example: --tried "JWT: too complex" --tried "OAuth: overkill"
+  --risk stringArray           repeatable: "severity: area: description"
+                               example: --risk "medium: mobile TTL: check on slow networks"
+  --task string                the original human prompt/task
+  --unknowns stringArray       things agent was unsure about (repeatable)
+  --ripple stringArray         files noticed but not changed (repeatable)
+  --agent-id string            agent identifier (default: $AGIT_AGENT_ID or "unknown")
+  --agent-model string         model name (default: $AGIT_MODEL or "unknown")
+  --session-id string          session identifier (default: $AGIT_SESSION_ID or "")
+  --json-note string           path to JSON file OR "-" to read from stdin
+                               if provided, all other metadata flags are ignored
+
+Behavior:
+1. Run git.StageAll(dir) then git.CommitWithMessage(dir, message)
+   Get the new commit hash from CommitWithMessage.
+2. Build a notes.CommitNote struct from the flags.
+3. Parse --tried flags: split each on first ":" into Approach and RejectedReason.
+4. Parse --risk flags: split each on ":" into Severity (field[0]), Area (field[1]), Description (field[2]).
+   Trim all fields. If fewer than 3 parts, put everything in Description.
+5. If --json-note is "-", read JSON from os.Stdin and unmarshal into CommitNote.
+   If --json-note is a file path, read that file and unmarshal.
+   Then override CommitHash and SchemaVersion on the unmarshalled note.
+6. Set note.SchemaVersion = "1.0", note.CommitHash = commitHash.
+7. Call notes.Write(dir, commitHash, &note).
+8. Print success with color:
+   green: "✓ Committed: " + shortHash (first 7 chars of hash)
+   cyan:  "  intent: " + intent (if set)
+   cyan:  "  confidence: " + formatted confidence (if > 0)
+   Always print the commit hash.
+
+Helper: get working dir with os.Getwd().
+
+The function that registers this command is:
+  func init() { rootCmd is in cmd/root.go, add with rootCmd.AddCommand(commitCmd) }
+
+Use cobra's RunE for error handling. Return errors don't call os.Exit.
+
+Output ONLY the raw Go source code. No markdown, no explanation, no code fences.
+Start directly with: package cmd
