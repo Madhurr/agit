@@ -8,7 +8,24 @@
       "Bash(go build ./...)",
       "Bash(test -d /home/madhur/agit/.git)",
       "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(m[''name'']\\) for m in data.get\\(''models'',[]\\)]\")",
-      "Bash(./agit commit -m \"fix: resolve HEAD argument in context show command\" --intent \"Fix ''agit context show HEAD'' displaying ''HEAD — HEAD'' instead of real commit hash\" --confidence 0.98 --confidence-rationale \"Simple one-line fix, tested and verified\" --task \"Fix context show HEAD displaying literal HEAD string instead of resolving hash\")"
+      "Bash(./agit commit -m \"fix: resolve HEAD argument in context show command\" --intent \"Fix ''agit context show HEAD'' displaying ''HEAD — HEAD'' instead of real commit hash\" --confidence 0.98 --confidence-rationale \"Simple one-line fix, tested and verified\" --task \"Fix context show HEAD displaying literal HEAD string instead of resolving hash\")",
+      "Bash(python3 scripts/gen.py prompts/07_notes_reader.txt github-app/src/notes-reader.ts)",
+      "Bash(python3 scripts/gen.py prompts/09_app_index.txt github-app/src/index.ts)",
+      "Bash(npm install)",
+      "Bash(ls /usr/local/bin/node* /usr/bin/node*)",
+      "Bash(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh)",
+      "Bash(bash)",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm install 20)",
+      "Bash(echo \"NVM_DIR=$NVM_DIR\")",
+      "Bash(source /home/madhur/.nvm/nvm.sh)",
+      "Bash(npm run build)",
+      "Bash(/home/madhur/agit/main.go:*)",
+      "Bash(go build -o agit .)",
+      "Bash(go test ./...)",
+      "Bash(./agit version)",
+      "Bash(./agit commit -m \"feat: ship agit to the world — all AI tools, GitHub App, tests, distribution\" --task \"Build agit for production: target all AI coding tools, add GitHub App for PR context, add tests, GoReleaser distribution, AGENTS.md open standard\" --intent \"Transform agit from working prototype into a production-ready project that GitHub itself will notice. Ship: AGENTS.md open standard for all AI tools, Probot GitHub App \\(agent context in PR comments\\), go test coverage, GoReleaser multi-platform releases, compelling README, CLAUDE.md dog-fooding.\" --confidence 0.91 --confidence-rationale \"All code builds and tests pass. GitHub App TypeScript compiles clean. GoReleaser config validated against schema. Only missing: actual GitHub remote + v0.1.0 tag to trigger first release.\" --tried \"Drift detection for Week 3: rejected — GitHub App has stronger pitch and more immediate value for getting GitHub attention\" --tried \"Claude Code only targeting: rejected — expanded to all AI tools \\(Copilot, Cursor, Aider, Devin\\) for broader adoption and stronger GitHub pitch\" --risk \"medium:github-api:refs/notes/agit may not be listed in GitHub API if not pushed — readNote returns null gracefully\" --risk \"low:goreleaser-brew:HOMEBREW_TAP_GITHUB_TOKEN secret needs separate setup before brew tap works\" --risk \"low:probot-types:Probot context type narrowing requires some ''as any'' casts in octokit calls\" --ripple \"GitHub remote needs to be added before git push and tag release can work\" --ripple \"HOMEBREW_TAP_GITHUB_TOKEN secret needs creating in GitHub repo settings\" --ripple \"GitHub App registration needed at github.com/settings/apps before App goes live\" --unknowns \"GitHub API rate limits when a PR has many commits — currently fetches notes serially, could parallelize\" --unknowns \"Whether GitHub staff browse for repos with AGENTS.md convention — may need HN/Twitter outreach\" --agent-id \"claude-code\" --agent-model \"claude-sonnet-4-6\")"
     ]
   }
 }

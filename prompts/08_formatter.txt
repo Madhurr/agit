@@ -1,0 +1,71 @@
+Write a TypeScript module that formats agit CommitNote data as a GitHub Markdown PR comment.
+
+File: github-app/src/formatter.ts
+
+Import the CommitNote interface from './notes-reader':
+```typescript
+import { CommitNote } from './notes-reader';
+```
+
+Also define and export this interface:
+```typescript
+export interface CommitContext {
+  sha: string;          // full commit SHA
+  shortSha: string;     // first 7 chars
+  subject: string;      // commit message subject line
+  note: CommitNote | null;
+}
+```
+
+Functions to implement:
+
+1. formatPRComment(commits: CommitContext[]): string
+   - Takes array of commits (with or without notes)
+   - Returns a complete GitHub Markdown string for a PR comment
+   - Header: "## 🤖 Agent Context\n\n"
+   - Show count: "**N/M commits have agent context** · powered by [agit](https://github.com/madhurm/agit)\n\n"
+   - Horizontal rule: "---\n\n"
+   - For each commit WITH a note, call formatCommitNote()
+   - For commits without notes, skip them (don't show)
+   - If NO commits have notes, return empty string (caller should not post comment)
+
+2. formatCommitNote(ctx: CommitContext): string
+   - Returns markdown section for one commit
+   - Format: "### `{shortSha}` {subject}\n\n"
+   - Table with: Confidence (with emoji), Agent (model + session if present), Task (if present)
+   - Confidence emoji: 🟢 for >= 0.8, 🟡 for >= 0.5, 🔴 for < 0.5
+   - Table format:
+     | | |
+     |---|---|
+     | **Confidence** | 🟢 85% — *"rationale text"* |
+     | **Agent** | claude-sonnet-4-6 (session: abc123) |
+     | **Task** | Original human task text |
+   - After table, if intent: "\n**Intent:** {intent}\n"
+   - If alternatives_considered (len > 0):
+     "\n**Alternatives rejected:**\n" then bullets: "- ✗ {approach} — {rejected_reason}\n"
+   - If key_decisions (len > 0):
+     "\n**Key decisions:**\n" then bullets: "- {decision}: {rationale}\n"
+   - If risks (len > 0):
+     "\n**Risks:**\n" then for each risk:
+       severity high = "- 🔴 **[high]** {area} — {description}\n"
+       severity medium = "- 🟡 **[medium]** {area} — {description}\n"
+       severity low = "- 🟢 **[low]** {area} — {description}\n"
+   - If test_results present:
+     "\n**Tests:** ✅ {passed} passed, ❌ {failed} failed, ⏭ {skipped} skipped\n"
+   - If unknowns (len > 0):
+     "\n**❓ Unknowns:**\n" then bullets: "- {item}\n"
+   - If ripple_effects (len > 0):
+     "\n**👀 Check these (ripple effects):**\n" then bullets: "- {item}\n"
+   - End with "\n---\n\n"
+
+3. COMMENT_MARKER constant = "<!-- agit-comment -->"
+   - Always prepend to the comment so we can find and update it later
+   - Export this constant
+
+Rules:
+- TypeScript strict mode compatible
+- Pure functions, no side effects, no I/O
+- All fields are optional in the sense that the function should handle empty arrays and zero values gracefully
+- confidence is a float 0.0-1.0, display as percentage e.g. "85%" using Math.round(confidence * 100)
+- Export formatPRComment, formatCommitNote, CommitContext, COMMENT_MARKER
+- Output ONLY raw TypeScript source code, no markdown fences, no explanation

@@ -1,0 +1,22 @@
+{
+  "name": "agit-github-app",
+  "version": "1.0.0",
+  "description": "GitHub App that adds agent context from agit notes to pull request comments",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "probot": "^13.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

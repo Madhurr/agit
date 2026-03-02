@@ -1,0 +1,98 @@
+Write a TypeScript module for reading agit git notes via the GitHub REST API.
+
+File: github-app/src/notes-reader.ts
+
+This module reads agit commit metadata (stored as git notes in refs/notes/agit) from a GitHub repository using ONLY the GitHub REST API — no git clone needed.
+
+How agit git notes work:
+- Notes are stored in the ref refs/notes/agit
+- Each note is a blob whose path in the notes tree is the commit SHA it annotates
+- The blob content is a JSON string matching the CommitNote schema
+
+CommitNote TypeScript interface (define this in the same file):
+
+```typescript
+export interface AgentInfo {
+  id: string;
+  model: string;
+  session_id: string;
+}
+
+export interface Alternative {
+  approach: string;
+  rejected_reason: string;
+}
+
+export interface KeyDecision {
+  decision: string;
+  rationale: string;
+}
+
+export interface Risk {
+  area: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
+export interface TestResults {
+  passed: number;
+  failed: number;
+  skipped: number;
+  command: string;
+}
+
+export interface CommitNote {
+  schema_version: string;
+  commit_hash: string;
+  agent: AgentInfo;
+  task: string;
+  intent: string;
+  confidence: number;
+  confidence_rationale: string;
+  alternatives_considered: Alternative[];
+  key_decisions: KeyDecision[];
+  risks: Risk[];
+  context_consulted: string[];
+  test_results?: TestResults;
+  ripple_effects: string[];
+  unknowns: string[];
+}
+```
+
+Function to implement:
+
+```typescript
+export async function readNote(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  commitSha: string
+): Promise<CommitNote | null>
+```
+
+Algorithm:
+1. Call GET /repos/{owner}/{repo}/git/refs/notes/agit to get the notes ref SHA
+   - If 404, return null (no notes in this repo)
+2. Call GET /repos/{owner}/{repo}/git/trees/{sha}?recursive=1 to list all blobs
+   - tree entries are objects with "path" (commit SHA) and "sha" (blob SHA)
+3. Find the tree entry whose path equals commitSha (full 40-char SHA)
+   - If not found, return null (no note for this commit)
+4. Call GET /repos/{owner}/{repo}/git/blobs/{sha} to get the blob
+   - blob.content is base64 encoded, blob.encoding is "base64"
+5. Decode base64 content: Buffer.from(blob.content, 'base64').toString('utf8')
+6. Parse JSON and return as CommitNote
+
+Import: import { Octokit } from '@octokit/core';
+
+Error handling:
+- Catch HTTP 404 errors and return null (don't throw)
+- Let other errors propagate (network issues, auth failures)
+- Use try/catch around the entire function body
+- Check status codes: if response status is 404, return null
+
+Rules:
+- TypeScript strict mode compatible
+- No console.log
+- No external dependencies beyond @octokit/core
+- Export the CommitNote interface and readNote function
+- Output ONLY raw TypeScript source code, no markdown, no explanation

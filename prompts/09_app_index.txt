@@ -1,0 +1,70 @@
+Write a TypeScript Probot GitHub App that adds agit agent context comments to pull requests.
+
+File: github-app/src/index.ts
+
+Imports needed:
+```typescript
+import { Probot, Context } from 'probot';
+import { Octokit } from '@octokit/core';
+import { readNote } from './notes-reader';
+import { formatPRComment, CommitContext, COMMENT_MARKER } from './formatter';
+```
+
+The Probot app listens to two events:
+1. pull_request.opened
+2. pull_request.synchronize
+
+For each event, call: handlePullRequest(app, context)
+
+async function handlePullRequest(app: Probot, context: Context<'pull_request'>):
+1. Get owner, repo, pull_number from context.payload.repository and context.payload.pull_request
+   - owner = context.payload.repository.owner.login
+   - repo = context.payload.repository.name
+   - pull_number = context.payload.pull_request.number
+   - base_sha = context.payload.pull_request.base.sha
+   - head_sha = context.payload.pull_request.head.sha
+
+2. List commits in the PR:
+   const commitsResponse = await context.octokit.request(
+     'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
+     { owner, repo, pull_number, per_page: 50 }
+   );
+   const commits = commitsResponse.data;
+
+3. For each commit, read the agit note:
+   - Use readNote(context.octokit as any, owner, repo, commit.sha)
+   - Build CommitContext: { sha: commit.sha, shortSha: commit.sha.slice(0, 7), subject: commit.commit.message.split('\n')[0], note }
+
+4. Format the comment:
+   const body = formatPRComment(commitContexts);
+   if body is empty string, return early (no notes found)
+   Prepend COMMENT_MARKER to body.
+
+5. Find existing agit comment on this PR:
+   const commentsResponse = await context.octokit.request(
+     'GET /repos/{owner}/{repo}/issues/{issue_number}/comments',
+     { owner, repo, issue_number: pull_number, per_page: 100 }
+   );
+   Find comment where comment.body?.includes(COMMENT_MARKER)
+
+6. If existing comment found: update it (PATCH /repos/{owner}/{repo}/issues/comments/{comment_id})
+   If not found: create new comment (POST /repos/{owner}/{repo}/issues/{issue_number}/comments)
+
+7. Wrap everything in try/catch, log errors with app.log.error()
+
+Export default function (standard Probot app export):
+```typescript
+export default (app: Probot) => {
+  app.on(['pull_request.opened', 'pull_request.synchronize'], async (context) => {
+    await handlePullRequest(app, context);
+  });
+};
+```
+
+Rules:
+- TypeScript strict mode compatible
+- Use context.octokit for all API calls (Probot injects authenticated octokit)
+- Cast to 'any' where Probot's type narrowing is too strict: (context.octokit as any)
+- Don't import Octokit directly — use context.octokit
+- Handle errors gracefully — a failure should never crash the server
+- Output ONLY raw TypeScript source code, no markdown fences, no explanation
