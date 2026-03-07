@@ -57,15 +57,9 @@ release:
   prerelease: auto
   name_template: "v{{ .Version }}"
 
-brews:
-  - name: agit
-    homepage: https://github.com/Madhurr/agit
-    description: "Agent-Native Git — preserve AI reasoning in every commit"
-    license: MIT
-    repository:
-      owner: Madhurr
-      name: homebrew-tap
-    install: |
-      bin.install "agit"
-    test: |
-      system "#{bin}/agit", "--version"
+# brew tap: create repo Madhurr/homebrew-tap first, then re-enable
+# brews:
+#   - name: agit
+#     repository:
+#       owner: Madhurr
+#       name: homebrew-tap

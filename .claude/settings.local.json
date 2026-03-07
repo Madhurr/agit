@@ -52,7 +52,11 @@
       "Bash(gh release view v0.1.0 --repo Madhurr/agit)",
       "Bash(gh run list --repo Madhurr/agit --limit 5)",
       "Bash(gh run view 22798733724 --repo Madhurr/agit --log-failed)",
-      "Bash(/home/madhur/agit/agit commit -m \"fix: correct GitHub owner name in goreleaser config \\(Madhurr not madhurm\\)\" --intent \"Fix GoReleaser 404 — wrong owner casing caused release publish to fail despite binaries building successfully\" --confidence 0.99 --confidence-rationale \"One-line fix, root cause confirmed in Actions log\" --agent-id \"claude-code\" --agent-model \"claude-sonnet-4-6\")"
+      "Bash(/home/madhur/agit/agit commit -m \"fix: correct GitHub owner name in goreleaser config \\(Madhurr not madhurm\\)\" --intent \"Fix GoReleaser 404 — wrong owner casing caused release publish to fail despite binaries building successfully\" --confidence 0.99 --confidence-rationale \"One-line fix, root cause confirmed in Actions log\" --agent-id \"claude-code\" --agent-model \"claude-sonnet-4-6\")",
+      "Bash(git push origin v0.1.1)",
+      "Bash(gh run list --repo Madhurr/agit --limit 3)",
+      "Bash(gh run watch 22799056340 --repo Madhurr/agit)",
+      "Bash(gh run view 22799056340 --repo Madhurr/agit --log-failed)"
     ]
   }
 }
