@@ -51,7 +51,7 @@ changelog:
 
 release:
   github:
-    owner: madhurm
+    owner: Madhurr
     name: agit
   draft: false
   prerelease: auto
@@ -59,11 +59,11 @@ release:
 
 brews:
   - name: agit
-    homepage: https://github.com/madhurm/agit
+    homepage: https://github.com/Madhurr/agit
     description: "Agent-Native Git — preserve AI reasoning in every commit"
     license: MIT
     repository:
-      owner: madhurm
+      owner: Madhurr
       name: homebrew-tap
     install: |
       bin.install "agit"
