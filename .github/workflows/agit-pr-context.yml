@@ -1,0 +1,183 @@
+name: agit PR Context
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  agit-context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch agit notes
+        run: |
+          git fetch origin refs/notes/agit:refs/notes/agit 2>/dev/null || true
+
+      - name: Install agit
+        run: |
+          curl -sL "https://github.com/Madhurr/agit/releases/latest/download/agit_linux_amd64.tar.gz" | tar xz
+          chmod +x agit
+          # Fallback: build from source if no release
+          if [ ! -f ./agit ]; then
+            go install github.com/madhurm/agit@latest
+          fi
+
+      - name: Generate PR comment
+        id: context
+        run: |
+          # Get PR commits
+          COMMITS=$(git log --format="%H" origin/${{ github.base_ref }}..${{ github.event.pull_request.head.sha }} 2>/dev/null || git log --format="%H" -10)
+          
+          COMMENT="<!-- agit-comment -->\n## 🤖 Agent Context\n\n"
+          HAS_NOTES=false
+          TOTAL=0
+          WITH_NOTES=0
+          
+          for SHA in $COMMITS; do
+            TOTAL=$((TOTAL + 1))
+            SHORT=${SHA:0:7}
+            SUBJECT=$(git log -1 --format="%s" $SHA)
+            
+            # Try to read agit note
+            NOTE_JSON=$(git notes --ref=agit show $SHA 2>/dev/null) || continue
+            if [ -z "$NOTE_JSON" ]; then continue; fi
+            
+            HAS_NOTES=true
+            WITH_NOTES=$((WITH_NOTES + 1))
+            
+            # Extract fields from JSON
+            INTENT=$(echo "$NOTE_JSON" | jq -r '.intent // empty')
+            CONFIDENCE=$(echo "$NOTE_JSON" | jq -r '.confidence // 0')
+            CONF_RAT=$(echo "$NOTE_JSON" | jq -r '.confidence_rationale // empty')
+            TASK=$(echo "$NOTE_JSON" | jq -r '.task // empty')
+            AGENT_ID=$(echo "$NOTE_JSON" | jq -r '.agent.id // empty')
+            AGENT_MODEL=$(echo "$NOTE_JSON" | jq -r '.agent.model // empty')
+            
+            CONF_PCT=$(echo "$CONFIDENCE * 100" | bc | cut -d. -f1)
+            
+            if [ "$CONF_PCT" -ge 80 ] 2>/dev/null; then
+              CONF_EMOJI="🟢"
+            elif [ "$CONF_PCT" -ge 50 ] 2>/dev/null; then
+              CONF_EMOJI="🟡"
+            else
+              CONF_EMOJI="🔴"
+            fi
+            
+            COMMENT+="### \`$SHORT\` $SUBJECT\n\n"
+            COMMENT+="| | |\n|---|---|\n"
+            [ -n "$CONF_PCT" ] && [ "$CONF_PCT" != "0" ] && COMMENT+="| **Confidence** | $CONF_EMOJI ${CONF_PCT}%"
+            [ -n "$CONF_RAT" ] && COMMENT+=" — *\"$CONF_RAT\"*"
+            COMMENT+=" |\n"
+            [ -n "$AGENT_MODEL" ] && COMMENT+="| **Agent** | $AGENT_ID ($AGENT_MODEL) |\n"
+            [ -n "$TASK" ] && COMMENT+="| **Task** | $TASK |\n"
+            COMMENT+="\n"
+            [ -n "$INTENT" ] && COMMENT+="**Intent:** $INTENT\n\n"
+            
+            # Alternatives
+            ALT_COUNT=$(echo "$NOTE_JSON" | jq '.alternatives_considered | length')
+            if [ "$ALT_COUNT" -gt 0 ]; then
+              COMMENT+="**Alternatives rejected:**\n"
+              for i in $(seq 0 $((ALT_COUNT - 1))); do
+                APP=$(echo "$NOTE_JSON" | jq -r ".alternatives_considered[$i].approach")
+                REJ=$(echo "$NOTE_JSON" | jq -r ".alternatives_considered[$i].rejected_reason")
+                COMMENT+="- ✗ $APP — $REJ\n"
+              done
+              COMMENT+="\n"
+            fi
+            
+            # Risks
+            RISK_COUNT=$(echo "$NOTE_JSON" | jq '.risks | length')
+            if [ "$RISK_COUNT" -gt 0 ]; then
+              COMMENT+="**⚠ Risks:**\n"
+              for i in $(seq 0 $((RISK_COUNT - 1))); do
+                SEV=$(echo "$NOTE_JSON" | jq -r ".risks[$i].severity")
+                AREA=$(echo "$NOTE_JSON" | jq -r ".risks[$i].area")
+                DESC=$(echo "$NOTE_JSON" | jq -r ".risks[$i].description")
+                case $SEV in
+                  high) REMOJI="🔴" ;;
+                  medium) REMOJI="🟡" ;;
+                  *) REMOJI="🟢" ;;
+                esac
+                COMMENT+="- $REMOJI **[$SEV]** $AREA — $DESC\n"
+              done
+              COMMENT+="\n"
+            fi
+            
+            # Unknowns
+            UNK_COUNT=$(echo "$NOTE_JSON" | jq '.unknowns | length')
+            if [ "$UNK_COUNT" -gt 0 ]; then
+              COMMENT+="**❓ Unknowns:**\n"
+              for i in $(seq 0 $((UNK_COUNT - 1))); do
+                UNK=$(echo "$NOTE_JSON" | jq -r ".unknowns[$i]")
+                COMMENT+="- $UNK\n"
+              done
+              COMMENT+="\n"
+            fi
+            
+            # Ripple effects
+            RIP_COUNT=$(echo "$NOTE_JSON" | jq '.ripple_effects | length')
+            if [ "$RIP_COUNT" -gt 0 ]; then
+              COMMENT+="**👀 Check these (ripple effects):**\n"
+              for i in $(seq 0 $((RIP_COUNT - 1))); do
+                RIP=$(echo "$NOTE_JSON" | jq -r ".ripple_effects[$i]")
+                COMMENT+="- $RIP\n"
+              done
+              COMMENT+="\n"
+            fi
+            
+            COMMENT+="---\n\n"
+          done
+          
+          if [ "$HAS_NOTES" = false ]; then
+            echo "has_notes=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Add header after we know the count
+          HEADER="**${WITH_NOTES}/${TOTAL} commits have agent context** · powered by [agit](https://github.com/Madhurr/agit)\n\n---\n\n"
+          COMMENT="<!-- agit-comment -->\n## 🤖 Agent Context\n\n${HEADER}${COMMENT}"
+          
+          # Write to file (multiline safe)
+          printf "%b" "$COMMENT" > /tmp/agit-comment.md
+          echo "has_notes=true" >> $GITHUB_OUTPUT
+
+      - name: Post or update PR comment
+        if: steps.context.outputs.has_notes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/agit-comment.md', 'utf8');
+            const marker = '<!-- agit-comment -->';
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            
+            const existing = comments.find(c => c.body?.includes(marker));
+            
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
