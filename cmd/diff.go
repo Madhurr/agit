@@ -53,14 +53,8 @@ func runDiff(cmd *cobra.Command, args []string) error {
 		fromRef = "HEAD~1"
 		toRef = "HEAD"
 	case 1:
-		// Support "abc..def" syntax (like git diff)
-		if parts := strings.SplitN(args[0], "..", 2); len(parts) == 2 && parts[0] != "" && parts[1] != "" {
-			fromRef = parts[0]
-			toRef = parts[1]
-		} else {
-			fromRef = args[0]
-			toRef = "HEAD"
-		}
+		fromRef = args[0]
+		toRef = "HEAD"
 	case 2:
 		fromRef = args[0]
 		toRef = args[1]
