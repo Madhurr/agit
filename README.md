@@ -228,6 +228,30 @@ Shows full agent context for a commit (defaults to HEAD).
 --json outputs the raw CommitNote JSON.
 ```
 
+### `agit diff`
+```
+Usage: agit diff [from] [to] [--json] [--files]
+
+Compare agent reasoning between two commits.
+Shows what changed in intent, confidence, risks, unknowns,
+alternatives, and other metadata — the reasoning diff, not the code diff.
+
+  agit diff                     # HEAD~1 vs HEAD
+  agit diff abc1234             # abc1234 vs HEAD
+  agit diff abc1234 def5678     # any two commits
+
+Flags:
+      --json    output as JSON (for agents reading diffs)
+      --files   include file-level changes
+```
+
+Output groups changes into: **Changed**, **Added**, **Resolved**, **Removed**.
+
+- Confidence changes show ↑/↓ direction with color
+- Risk resolutions are highlighted with ✓
+- Unknowns that disappear show as "resolved"
+- Works even when one commit has no agit note
+
 ### `agit init`
 ```
 Usage: agit init
@@ -300,7 +324,7 @@ The CommitNote JSON stored per commit:
 - [x] `agit init` — repo initialization
 - [x] GitHub App — agent context in PR comments
 - [x] GoReleaser — multi-platform binary releases
-- [ ] `agit diff` — semantic diff between any two commits
+- [x] `agit diff` — semantic diff between any two commits
 - [ ] VS Code extension — inline context in editor
 - [ ] GitLab App
 
