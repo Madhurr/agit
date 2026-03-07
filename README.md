@@ -1,333 +1,284 @@
-# agit — Agent-Native Git
+# agit
 
-> **The missing commit layer for AI coding agents.**
-> agit preserves the *why* behind every AI commit — so the next agent session (or human) knows exactly what was decided, what was tried, and what risks were left open.
+Git commits tell you *what* changed. agit tells you *why*.
 
-[![Go](https://img.shields.io/badge/go-1.22-blue)](https://golang.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
----
-
-## The Problem
-
-Every day, AI coding agents make millions of commits. Every one of those commits looks like this:
-
-```
-abc1234  feat: add user authentication
-def5678  fix: resolve payment edge case
-ghi9012  refactor: extract service layer
-```
-
-No reasoning. No alternatives considered. No risks flagged. No unknowns acknowledged.
-
-**The context that matters — the *why* — is gone the moment the agent session ends.**
-
-When you open a new session and ask "why did the agent choose JWT over sessions?", the answer is gone. When a PR reviewer looks at an agent commit, they see output with no reasoning. When a bug surfaces two weeks later, tracing it back to an agent decision requires reading an entire session transcript.
-
-This is the gap. agit closes it.
-
----
-
-## The Solution
-
-agit is a `git commit` wrapper that stores full AI agent reasoning in git notes — a native git feature that travels with the repo.
+`agit commit` wraps `git commit` and attaches structured reasoning — intent, confidence, risks, alternatives tried, unknowns — as [git notes](https://git-scm.com/docs/git-notes). No extra files. No database. Just git.
 
 ```bash
-# Instead of: git commit -m "feat: add JWT auth"
 agit commit \
   -m "feat: add JWT auth middleware" \
   --intent "Stateless auth to avoid session storage across pods" \
   --confidence 0.82 \
-  --confidence-rationale "Core logic tested, token refresh path incomplete" \
   --tried "session-based: needs shared Redis — rejected" \
   --risk "high:token-expiry:refresh not implemented" \
-  --unknowns "token revocation strategy not decided" \
-  --ripple "all protected route handlers need middleware applied"
+  --unknowns "token revocation strategy not decided"
 ```
 
-Now `agit log` shows this:
-
 ```
+$ agit log
+
 abc1234  feat: add JWT auth middleware  12 Mar 2026  [82%] [risk:high]
                 · madhur
 intent: Stateless auth to avoid session storage across pods
 tried:  session-based, OAuth-only
 ```
 
-And `agit context show abc1234` shows the full picture:
-
-```
-Task:
-  Add stateless auth to protect API endpoints
-
-Intent:
-  Stateless auth via JWT to avoid session storage across pods
-
-Confidence:
-  82% — "Core logic tested, token refresh path incomplete"
-
-Alternatives rejected:
-  • session-based — needs shared Redis store
-  • OAuth-only — internal service-to-service calls also need auth
-
-Risks:
-  [high] token-expiry: short-lived tokens cause UX issues if refresh not implemented
-  [medium] key-rotation: no rotation strategy yet
-
-Unknowns:
-  • token revocation strategy not decided
-  • rate limiting on /auth/token not planned
-
-Ripple effects (check these):
-  • all protected route handlers need middleware applied
-  • middleware/auth.go needs updating for new token shape
-```
-
-All of this is stored in `refs/notes/agit` — a standard git ref that travels with `git push/fetch`. No extra files. No databases. Just git.
+[![Go 1.22](https://img.shields.io/badge/go-1.22-blue)](https://golang.org) [![MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## GitHub App — Agent Context in Every PR
+## Why
 
-The [agit GitHub App](https://github.com/marketplace/agit) reads `refs/notes/agit` and posts an **Agent Context** comment on every PR, giving reviewers full reasoning without leaving GitHub.
+AI coding agents write millions of commits daily. Every one looks like this:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│ 🤖 Agent Context  ·  2/3 commits have agent metadata            │
-│ ──────────────────────────────────────────────────────────────  │
-│ abc1234  feat: add JWT auth middleware                           │
-│                                                                  │
-│ Confidence  🟢 82%  "refresh path not yet covered"              │
-│ Agent       claude-sonnet-4-6  (session: s_abc123)              │
-│ Intent      Stateless auth to avoid session storage             │
-│                                                                  │
-│ Alternatives rejected                                           │
-│   ✗ session-based — needs shared Redis                          │
-│   ✗ OAuth-only — internal calls also need auth                  │
-│                                                                  │
-│ ⚠ Risks                                                         │
-│   🔴 [high] token-expiry — refresh not implemented              │
-│   🟡 [medium] key-rotation — no strategy yet                    │
-│                                                                  │
-│ ❓ Unknowns                                                      │
-│   · token revocation strategy not decided                       │
-│   · rate limiting on /auth/token not planned                    │
-│                                                                  │
-│ 👀 Check these (ripple effects)                                  │
-│   · all protected route handlers need middleware                 │
-│   · middleware/auth.go — token shape changed                    │
-└─────────────────────────────────────────────────────────────────┘
+abc1234  feat: add user authentication
+def5678  fix: resolve payment edge case
 ```
 
-Works for every AI coding tool. Works on every GitHub repo. Requires only that agents use `agit commit`.
+The reasoning is gone the moment the session ends. Next session, next developer, next agent — nobody knows *why* JWT was chosen over sessions, what alternatives were considered, or what risks were flagged.
+
+agit fixes this by storing agent reasoning alongside every commit, using a git feature that's been stable since 2010.
 
 ---
 
 ## Install
 
-### Go install (fastest)
 ```bash
+# Go
 go install github.com/madhurm/agit@latest
+
+# Binary (Linux/macOS/Windows)
+# → github.com/Madhurr/agit/releases
 ```
 
-### Homebrew
-```bash
-brew install madhurm/tap/agit
-```
-
-### Download binary
-Download from [GitHub Releases](https://github.com/madhurm/agit/releases) for your platform (Linux/macOS/Windows, amd64/arm64).
-
----
-
-## Quick Start
+## Setup
 
 ```bash
-# 1. Initialize in your repo (configures git to push/fetch notes)
 cd your-repo
-agit init
-
-# 2. Make your first context-aware commit
-agit commit -m "feat: initial implementation" \
-  --intent "What you were trying to do" \
-  --confidence 0.9
-
-# 3. See the semantic log
-agit log
-
-# 4. Inspect any commit
-agit context show HEAD
-agit context show HEAD --json   # machine-readable
+agit init    # configures notes fetch/rebase
 ```
 
----
-
-## For AI Agents
-
-Add an `AGENTS.md` file to your repo (see [AGENTS.md](AGENTS.md) in this repo for the template). It tells any AI coding agent how to use agit in your project.
-
-### Claude Code
-```bash
-# Set in your shell or .env
-export CLAUDE_AGENT_ID="claude-code"
-export CLAUDE_MODEL="claude-sonnet-4-6"
-export CLAUDE_SESSION_ID="$(uuidgen)"
-
-# Now agit commit auto-fills agent metadata
-agit commit -m "feat: ..." --intent "..." --confidence 0.85
-```
-
-### Aider
-```bash
-aider --commit-cmd "agit commit" ...
-```
-
-### GitHub Copilot Workspace
-Configure `agit commit` as the commit command in workspace settings.
-
-### Cursor / Continue.dev / Any other tool
-If your agent can run shell commands, it can use `agit commit`. See [AGENTS.md](AGENTS.md) for the full flag reference.
+That's it. Now use `agit commit` instead of `git commit`.
 
 ---
 
 ## Commands
 
-### `agit commit`
-```
-Usage: agit commit -m <message> [flags]
+**`agit commit`** — commit with reasoning attached
 
-Flags:
-  -m, --message string               Commit message (required)
-      --task string                  Original human task/prompt
-      --intent string                Agent's goal for this commit
-      --confidence float             Confidence 0.0–1.0
-      --confidence-rationale string  Why this confidence level
-      --tried string                 Repeatable: "approach: rejected-reason"
-      --risk string                  Repeatable: "severity:area:description"
-      --unknowns string              Repeatable: things agent was unsure about
-      --ripple string                Repeatable: files not changed but affected
-      --agent-id string              Agent identifier
-      --agent-model string           Model name
-      --session-id string            Agent session ID
-      --json-note string             Path to JSON metadata file (or - for stdin)
+```bash
+agit commit -m "message" \
+  --intent "what you were trying to do" \
+  --confidence 0.85 \
+  --confidence-rationale "tests pass, edge cases uncovered" \
+  --tried "approach: why rejected" \        # repeatable
+  --risk "severity:area:description" \      # repeatable
+  --unknowns "things you're unsure about" \ # repeatable
+  --ripple "files affected but not changed"  # repeatable
 ```
 
-### `agit log`
-```
-Usage: agit log [-n <count>] [--json]
+Agent metadata (`--agent-id`, `--agent-model`, `--session-id`) auto-fills from environment variables. Pass `--json-note <file>` to pipe in structured JSON instead of flags.
 
-Shows recent commits with agit metadata inline.
---json outputs machine-readable JSON array (for agents reading history).
+**`agit log`** — git log with reasoning inline
+
+```
+$ agit log -n 5
+
+d73d771  feat: implement agit diff  8 Mar 2026  [95%] [risk:low]
+                · madhur
+intent: Semantic diff between commits for reasoning evolution
+tried:  text diff of JSON, stored diffs
+
+2f5c0ee  fix: disable brew tap  7 Mar 2026  [99%]
+                · madhur
+intent: Unblock binary releases
 ```
 
-### `agit context show`
-```
-Usage: agit context show [hash] [--json]
+`agit log --json` for machine-readable output.
 
-Shows full agent context for a commit (defaults to HEAD).
---json outputs the raw CommitNote JSON.
+**`agit context show`** — full reasoning for a commit
+
+```
+$ agit context show d73d771
+
+Task:     Implement agit diff for comparing agent reasoning
+Intent:   Semantic diff between any two commits
+Confidence: 95% — "14 tests pass, CLI verified end-to-end"
+Agent:    anton (claude-opus-4-6)
+
+Alternatives rejected:
+  • Text diff of JSON — loses semantic meaning
+  • Stored diffs — unnecessary complexity
+
+Risks:
+  [low] merge-commits: multiple parents may confuse HEAD~1
+
+Unknowns:
+  • Should GitHub PR comments also show diffs?
+
+Ripple effects:
+  • formatter.ts — could add diff view
 ```
 
-### `agit init`
-```
-Usage: agit init
+`agit context show --json` for the raw CommitNote.
 
-Configures git in the current repo to:
-  - Fetch refs/notes/agit from origin
-  - Carry agit notes through rebase/cherry-pick
+**`agit diff`** — how reasoning evolved between commits
+
 ```
+$ agit diff 2f5c0ee..d73d771
+
+12 change(s) in agent context
+
+Changed:
+  Confidence: 99% → 95%
+  Agent: claude-code → anton
+
+Added:
+  + 2 alternatives rejected
+  + 2 new risks identified
+
+Resolved:
+  ✓ Risk resolved: [medium] github-api
+  ✓ Unknown resolved: API rate limits
+```
+
+Supports `agit diff`, `agit diff <hash>`, `agit diff <from>..<to>`, `agit diff <from> <to>`. Add `--json` or `--files`.
+
+**`agit init`** — one-time repo setup
+
+Configures `git fetch` to pull `refs/notes/agit` and `notes.rewriteRef` to carry notes through rebase.
 
 ---
 
-## How Storage Works
+## PR Context on GitHub
 
-agit stores metadata using **git notes** — a native git feature designed for exactly this: attaching metadata to commits without changing commit hashes.
+Drop this workflow in `.github/workflows/agit-pr-context.yml` and every PR gets an automatic comment with full agent reasoning:
+
+```yaml
+name: agit PR Context
+on:
+  pull_request:
+    types: [opened, synchronize]
+permissions:
+  contents: read
+  pull-requests: write
+```
+
+[Full workflow →](.github/workflows/agit-pr-context.yml)
+
+Result on your PR:
+
+> ### 🤖 Agent Context
+> **1/2 commits have agent context**
+>
+> | Confidence | 🟢 95% — "All tests pass, CLI verified" |
+> | Agent | anton (claude-opus-4-6) |
+>
+> **Intent:** Semantic diff between commits
+>
+> **Risks:** 🟢 [low] merge-commits — multiple parents
+>
+> **❓ Unknowns:** PR formatter diff view
+
+No app registration. No webhook hosting. Just a workflow file.
+
+A self-hosted [Probot app](github-app/) is also included for orgs that need it at scale.
+
+---
+
+## How it works
+
+agit stores metadata in **git notes** under `refs/notes/agit`. Each note is a JSON blob keyed by commit SHA.
 
 ```
 refs/notes/agit
-  └── <commit-sha>  → JSON CommitNote
+  └── <commit-sha> → JSON
 ```
 
-- **No extra files** in your repo
-- **Travels with the repo**: push/pull like any ref
-  ```bash
-  git push origin refs/notes/agit
-  git fetch origin refs/notes/agit:refs/notes/agit
-  ```
-- **Survives rebase**: `agit init` configures `notes.rewriteRef` so notes follow rebased commits
-- **Works offline**: everything is local git
+- No files added to your repo
+- Push/fetch like any ref: `git push origin refs/notes/agit`
+- Survives rebase (with `notes.rewriteRef` configured by `agit init`)
+- Works offline — everything is local git
+- Standard feature since git 1.6.6 (2010)
 
----
-
-## AGENTS.md — The Open Standard
-
-agit introduces **AGENTS.md** — a convention for AI-native repositories. Drop it in your repo root to tell any AI coding agent how to commit with context in your project.
-
-This repo itself has an [AGENTS.md](AGENTS.md). Copy the template to your own projects.
-
----
-
-## Schema
-
-The CommitNote JSON stored per commit:
+### Schema
 
 ```json
 {
   "schema_version": "1.0",
   "commit_hash": "abc1234...",
   "agent": { "id": "claude-code", "model": "claude-sonnet-4-6", "session_id": "..." },
-  "task": "Original human prompt",
-  "intent": "Agent's goal",
+  "task": "Original task",
+  "intent": "What the agent was trying to do",
   "confidence": 0.85,
-  "confidence_rationale": "Why this confidence level",
+  "confidence_rationale": "Why this confidence",
   "alternatives_considered": [{ "approach": "...", "rejected_reason": "..." }],
   "key_decisions": [{ "decision": "...", "rationale": "..." }],
   "risks": [{ "area": "...", "description": "...", "severity": "low|medium|high" }],
-  "context_consulted": ["file.go:42", "README.md"],
   "test_results": { "passed": 42, "failed": 0, "skipped": 3, "command": "go test ./..." },
-  "ripple_effects": ["middleware/auth.go — may need updating"],
-  "unknowns": ["token revocation strategy not decided"]
+  "ripple_effects": ["files affected but not changed"],
+  "unknowns": ["things the agent wasn't sure about"]
 }
 ```
 
 ---
 
-## Project Status
+## Agent integration
 
-- [x] `agit commit` — full metadata capture
-- [x] `agit log` — semantic history
-- [x] `agit context show` — full context display
-- [x] `agit init` — repo initialization
-- [x] GitHub App — agent context in PR comments
-- [x] GoReleaser — multi-platform binary releases
-- [ ] `agit diff` — semantic diff between any two commits
-- [ ] VS Code extension — inline context in editor
-- [ ] GitLab App
+agit works with any tool that can run shell commands.
+
+**Claude Code** — set env vars, use `agit commit`:
+```bash
+export AGIT_AGENT_ID="claude-code"
+export AGIT_MODEL="claude-sonnet-4-6"
+```
+
+**Aider** — `aider --commit-cmd "agit commit"`
+
+**Cursor / Copilot / Continue.dev / Devin** — if it has a terminal, it can use agit.
+
+**Any repo** — add [AGENTS.md](AGENTS.md) to tell agents to use `agit commit`. It's a convention, like `.editorconfig` but for AI.
+
+---
+
+## Project status
+
+Done:
+- `agit commit` — metadata capture via flags or JSON
+- `agit log` — semantic history with inline notes
+- `agit context show` — full reasoning display
+- `agit diff` — semantic diff between commits
+- `agit init` — repo setup
+- GitHub Actions workflow — PR comments
+- Probot GitHub App — self-hosted alternative
+- GoReleaser — Linux/macOS/Windows binaries
+
+Next:
+- `agit blame` — reasoning per line
+- VS Code extension
+- GitLab CI integration
 
 ---
 
 ## Contributing
 
 ```bash
-git clone https://github.com/madhurm/agit
+git clone https://github.com/Madhurr/agit
 cd agit
 go build -o agit .
-
-# Run tests
 go test ./...
 
-# Make a contribution (using agit itself, naturally)
+# Contribute using agit (naturally)
 agit commit -m "feat: ..." --intent "..." --confidence 0.9
 ```
-
-See [AGENTS.md](AGENTS.md) for how agents should contribute to this project.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT
 
 ---
 
-*agit is built to last. git notes have been in git since 2010. The data format is plain JSON. No vendor lock-in, no cloud dependency, no API keys required. Just git.*
+Built on git notes (stable since 2010). Plain JSON. No vendor lock-in. No cloud dependency. No API keys.
