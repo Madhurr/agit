@@ -38,7 +38,7 @@ tried:  session cookies
 ## Install
 
 ```bash
-go install github.com/madhurm/agit@latest
+go install github.com/Madhurr/agit@v0.3.0
 ```
 
 Pre-built binaries at [releases](https://github.com/Madhurr/agit/releases).
