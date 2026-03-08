@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "bed65ce",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "improve README quality before marketing push",
+  "intent": "move badges above the fold, add command table for scannability, add agit context show example which was missing, remove repeated prose",
+  "confidence": 0.90,
+  "confidence_rationale": "subjective design judgment, but follows conventions of well-received Go project READMEs",
+  "alternatives_considered": [
+    { "approach": "no command table, keep prose", "rejected_reason": "table lets people see all commands at a glance before deciding to read further" }
+  ],
+  "risks": [],
+  "unknowns": ["whether the demo GIFs render well on mobile GitHub"],
+  "ripple_effects": []
+}
