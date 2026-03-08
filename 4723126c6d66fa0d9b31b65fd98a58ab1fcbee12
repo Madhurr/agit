@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "4723126",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "make the repo look professional before showing it to the world",
+  "intent": "remove demos/, scripts/, prompts/, CLAUDE.md — all internal scaffolding that makes the repo look unfinished. rewrite README to be honest and direct",
+  "confidence": 0.92,
+  "confidence_rationale": "content judgment call — hard to be certain what reads as professional vs sparse to different audiences",
+  "alternatives_considered": [
+    { "approach": "keep demos/", "rejected_reason": "fake AI-generated projects are obvious padding, hurts credibility" }
+  ],
+  "risks": [
+    { "area": "discoverability", "description": "shorter README has less surface area for search indexing", "severity": "low" }
+  ],
+  "unknowns": ["whether removing demos loses useful examples for new users"],
+  "ripple_effects": []
+}
