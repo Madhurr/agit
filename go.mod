@@ -1,4 +1,4 @@
-module github.com/madhurm/agit
+module github.com/Madhurr/agit
 
 go 1.22
 

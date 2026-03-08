@@ -3,8 +3,8 @@ package drift_test
 import (
 	"testing"
 
-	"github.com/madhurm/agit/internal/drift"
-	"github.com/madhurm/agit/internal/notes"
+	"github.com/Madhurr/agit/internal/drift"
+	"github.com/Madhurr/agit/internal/notes"
 )
 
 func TestDiffBothNil(t *testing.T) {

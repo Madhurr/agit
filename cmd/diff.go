@@ -9,9 +9,9 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/madhurm/agit/internal/drift"
-	"github.com/madhurm/agit/internal/git"
-	"github.com/madhurm/agit/internal/notes"
+	"github.com/Madhurr/agit/internal/drift"
+	"github.com/Madhurr/agit/internal/git"
+	"github.com/Madhurr/agit/internal/notes"
 )
 
 var diffCmd = &cobra.Command{

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/madhurm/agit/cmd"
+import "github.com/Madhurr/agit/cmd"
 
 // Set by GoReleaser via ldflags.
 var (

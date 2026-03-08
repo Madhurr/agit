@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/madhurm/agit/internal/git"
+	"github.com/Madhurr/agit/internal/git"
 )
 
 // Alternative represents an approach the agent considered but rejected.

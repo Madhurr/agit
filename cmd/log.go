@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/madhurm/agit/internal/git"
-	"github.com/madhurm/agit/internal/notes"
+	"github.com/Madhurr/agit/internal/git"
+	"github.com/Madhurr/agit/internal/notes"
 	"github.com/spf13/cobra"
 )
 

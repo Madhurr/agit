@@ -6,7 +6,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/madhurm/agit/internal/notes"
+	"github.com/Madhurr/agit/internal/notes"
 )
 
 // ChangeKind classifies a diff entry.

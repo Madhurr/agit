@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/madhurm/agit/internal/notes"
+	"github.com/Madhurr/agit/internal/notes"
 )
 
 // initTestRepo creates a temporary git repo with one commit and returns its path.
