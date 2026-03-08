@@ -1,16 +1,36 @@
 # agit
 
-Git commits tell you *what* changed. agit tells you *why*.
+[![Go 1.22](https://img.shields.io/badge/go-1.22-00ADD8?logo=go&logoColor=white)](https://golang.org) [![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Latest Release](https://img.shields.io/github/v/release/Madhurr/agit)](https://github.com/Madhurr/agit/releases)
 
-![terminal](docs/demo.png)
+**Git commits tell you *what* changed. agit tells you *why*.**
 
-![PR comment](docs/pr-preview.gif)
+When an AI agent makes a commit, it knows things: why it chose this approach over alternatives, how confident it was, what might break, what it left unresolved. That context disappears when the session ends.
+
+agit stores it in the commit — using [git notes](https://git-scm.com/docs/git-notes), a native git feature that travels with push and fetch.
 
 ---
 
-When an AI agent makes a commit, it knows a lot: why it chose this approach over others, how confident it was, what might break, what it left unresolved. That context disappears the moment the session ends.
+![terminal demo](docs/demo.png)
 
-agit stores it in the commit — using [git notes](https://git-scm.com/docs/git-notes), a native git feature that travels with push and fetch.
+![PR context](docs/pr-preview.gif)
+
+---
+
+## Install
+
+```bash
+go install github.com/Madhurr/agit@v0.3.0
+```
+
+Pre-built binaries (Linux / macOS / Windows) at [releases](https://github.com/Madhurr/agit/releases).
+
+```bash
+cd your-repo && agit init
+```
+
+---
+
+## Usage
 
 ```bash
 agit commit \
@@ -31,55 +51,36 @@ intent: stateless sessions, no Redis dependency
 tried:  session cookies
 ```
 
-[![Go 1.22](https://img.shields.io/badge/go-1.22-blue)](https://golang.org) [![MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
----
-
-## Install
-
-```bash
-go install github.com/Madhurr/agit@v0.3.0
 ```
+$ agit context show HEAD
 
-Pre-built binaries at [releases](https://github.com/Madhurr/agit/releases).
+Intent:      stateless sessions, no Redis dependency
+Confidence:  82% — "core path works, refresh not covered"
+Agent:       claude-code (claude-sonnet-4-6)
 
-```bash
-cd your-repo && agit init
+Alternatives rejected:
+  • session cookies — needs shared store across pods
+
+Risks:
+  [high] token-refresh: not implemented yet
+
+Unknowns:
+  • revocation strategy undecided
 ```
 
 ---
 
 ## Commands
 
-### `agit commit`
+| Command | Description |
+|---|---|
+| `agit commit` | commit with reasoning attached |
+| `agit log` | history with inline reasoning |
+| `agit context show [hash]` | full reasoning for a commit |
+| `agit diff [from]..[to]` | how reasoning evolved between commits |
+| `agit init` | one-time repo setup |
 
-```
-agit commit -m <message> [flags]
-
---intent string              why this change
---confidence float           0.0 to 1.0
---confidence-rationale string
---tried string               "approach: reason" — repeatable
---risk string                "severity:area:description" — repeatable
---unknowns string            repeatable
---ripple string              affected but not modified — repeatable
---agent-id / --agent-model / --session-id
---json-note string           path to full JSON instead of flags
-```
-
-Agent metadata is auto-filled from environment variables (`AGIT_AGENT_ID`, `AGIT_MODEL`, `AGIT_SESSION_ID`).
-
-### `agit log`
-
-Commit history with reasoning inline. `--json` for machine-readable output.
-
-### `agit context show [hash]`
-
-Full reasoning for a commit. Defaults to HEAD. `--json` for raw JSON.
-
-### `agit diff [from] [to]`
-
-How reasoning changed between commits.
+### `agit diff`
 
 ```
 $ agit diff HEAD~3..HEAD
@@ -87,49 +88,38 @@ $ agit diff HEAD~3..HEAD
 Changed:
   Confidence: 68% → 91%
 
-Added:
-  + Risk: [medium] race condition in worker pool
-
 Resolved:
   ✓ Risk resolved: [high] token-refresh
   ✓ Unknown resolved: revocation strategy
+
+Added:
+  + Risk: [medium] race condition in worker pool
 ```
-
-Supports `agit diff`, `agit diff <hash>`, `agit diff <from>..<to>`.
-
-### `agit init`
-
-One-time repo setup: configures git to fetch `refs/notes/agit` and carry notes through rebase.
 
 ---
 
-## PR comments
+## GitHub PR comments
 
-Add `.github/workflows/agit-pr-context.yml` ([see it here](.github/workflows/agit-pr-context.yml)) to any repo. Every PR gets an Agent Context comment — full reasoning, no setup required.
+Drop `.github/workflows/agit-pr-context.yml` ([full file](.github/workflows/agit-pr-context.yml)) in any repo. Every PR gets an Agent Context comment automatically — no app registration, no webhooks.
 
 ---
 
 ## How it works
 
-Notes live under `refs/notes/agit`, keyed by commit SHA.
-
-```
-refs/notes/agit
-  └── <commit-sha>  →  JSON
-```
+Notes are stored in `refs/notes/agit`, keyed by commit SHA. Each note is a JSON blob.
 
 ```bash
 # push notes with your code
 git push origin refs/notes/agit
 
-# fetch them when cloning
+# fetch on clone
 git fetch origin refs/notes/agit:refs/notes/agit
 ```
 
-No extra files in the working tree. Works offline. Plain JSON. The storage mechanism has been in git since 2010.
+No extra files in the working tree. Works offline. Plain JSON. The storage has been in git since 2010.
 
 <details>
-<summary>Full schema</summary>
+<summary>Schema</summary>
 
 ```json
 {
@@ -155,10 +145,9 @@ No extra files in the working tree. Works offline. Plain JSON. The storage mecha
 
 ## Agent setup
 
-Works with any tool that runs shell commands. Drop [AGENTS.md](AGENTS.md) in your repo — it tells agents to use `agit commit` and documents the flags.
+Works with any tool that can run shell commands. Add [AGENTS.md](AGENTS.md) to your repo to instruct agents to use `agit commit`.
 
 ```bash
-# Claude Code, Cursor, Copilot, Aider, Devin, anything
 export AGIT_AGENT_ID="claude-code"
 export AGIT_MODEL="claude-sonnet-4-6"
 ```
@@ -174,4 +163,4 @@ cd agit && go build -o agit . && go test ./...
 
 ---
 
-MIT
+MIT © [Madhur](https://github.com/Madhurr)
