@@ -152,6 +152,20 @@ export AGIT_AGENT_ID="claude-code"
 export AGIT_MODEL="claude-sonnet-4-6"
 ```
 
+**Claude Code** — add to your `CLAUDE.md` or system prompt:
+```
+Use agit commit instead of git commit. Read AGENTS.md for flags and guidance.
+```
+
+**Aider**
+```bash
+aider --commit-cmd "agit commit -m"
+```
+
+**Cursor / Copilot / Continue / Devin** — if it has a terminal, it can run `agit commit`. Point it at `AGENTS.md`.
+
+**Any agent reading this repo** — run `agit log --json` before starting work to understand prior decisions.
+
 ---
 
 ## Contributing
