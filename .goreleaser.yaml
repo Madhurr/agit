@@ -1,0 +1,65 @@
+version: 2
+
+project_name: agit
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: agit
+    main: .
+    binary: agit
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: agit
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - AGENTS.md
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: Madhurr
+    name: agit
+  draft: false
+  prerelease: auto
+  name_template: "v{{ .Version }}"
+
+# brew tap: create repo Madhurr/homebrew-tap first, then re-enable
+# brews:
+#   - name: agit
+#     repository:
+#       owner: Madhurr
+#       name: homebrew-tap

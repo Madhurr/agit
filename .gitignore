@@ -1,0 +1,7 @@
+agit
+github-app/node_modules/
+github-app/dist/
+.env
+*.pem
+dist/
+.claude/
