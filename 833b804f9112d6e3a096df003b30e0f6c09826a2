@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "833b804",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "make AGENTS.md actually useful for AI agents",
+  "intent": "the previous AGENTS.md listed flags but gave no guidance on what to write. agents would produce shallow notes (confidence always 0.9, no real risks). rewrote with explicit examples of good vs bad content for each field",
+  "confidence": 0.91,
+  "confidence_rationale": "content quality judgment — written from experience of what makes agent notes useful vs noise",
+  "alternatives_considered": [
+    { "approach": "keep flag reference only", "rejected_reason": "agents already know how to read flag docs — they need guidance on what constitutes quality content" }
+  ],
+  "risks": [
+    { "area": "length", "description": "longer AGENTS.md may be skipped by agents that truncate context", "severity": "low" }
+  ],
+  "unknowns": ["whether different agents weight AGENTS.md differently in their context window"],
+  "ripple_effects": []
+}
