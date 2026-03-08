@@ -5,6 +5,7 @@ project_name: agit
 before:
   hooks:
     - go mod tidy
+    - go mod verify
 
 builds:
   - id: agit
@@ -24,6 +25,8 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
+    # Reproducible builds: override build time so same source = same binary hash
+    mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
   - id: agit
@@ -38,6 +41,26 @@ archives:
 
 checksum:
   name_template: "checksums.txt"
+  algorithm: sha256
+
+# Sign checksums.txt with cosign (keyless, GitHub Actions OIDC)
+signs:
+  - cmd: cosign
+    certificate: "${artifact}.pem"
+    signature: "${artifact}.sig"
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+# SBOM per binary
+sboms:
+  - artifacts: binary
+    args: ["$artifact", "--file", "$document", "--output", "cyclonedx-json"]
 
 changelog:
   sort: asc
@@ -56,6 +79,9 @@ release:
   draft: false
   prerelease: auto
   name_template: "v{{ .Version }}"
+  extra_files:
+    - glob: "*.sig"
+    - glob: "*.pem"
 
 # brew tap: create repo Madhurr/homebrew-tap first, then re-enable
 # brews:

@@ -28,7 +28,29 @@ Pre-built binaries (Linux / macOS / Windows) at [releases](https://github.com/Ma
 cd your-repo && agit init
 ```
 
+### Verify a binary release
+
+Every release is built on GitHub Actions, signed with [cosign](https://docs.sigstore.dev/) keyless signing, and attested with SLSA provenance. To verify:
+
+```bash
+# 1. Checksum
+sha256sum --check --ignore-missing checksums.txt
+
+# 2. Cosign signature (proves GitHub Actions built it, not a dev machine)
+cosign verify-blob checksums.txt \
+  --signature checksums.txt.sig \
+  --certificate checksums.txt.pem \
+  --certificate-identity-regexp "https://github.com/Madhurr/agit/.github/workflows/release.yml" \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+
+# 3. SLSA provenance
+gh attestation verify agit_linux_amd64.tar.gz --repo Madhurr/agit
+```
+
+See [SECURITY.md](./SECURITY.md) for full details.
+
 ---
+
 
 ## Usage
 

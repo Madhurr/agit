@@ -24,6 +24,12 @@ jobs:
       - name: Build
         run: go build -o agit .
 
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Scan for vulnerabilities
+        run: govulncheck ./...
+
   test-app:
     runs-on: ubuntu-latest
     defaults:

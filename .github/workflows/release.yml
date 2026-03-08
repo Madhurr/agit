@@ -7,20 +7,56 @@ on:
 
 permissions:
   contents: write
+  # Required for cosign keyless signing via GitHub OIDC
+  id-token: write
+  # Required for SLSA provenance attestation
+  attestations: write
 
 jobs:
+  # ── Security: vulnerability scan before we ship ──────────────────────────
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Scan for vulnerabilities
+        run: govulncheck ./...
+
+  # ── Tests must pass ───────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - run: go test ./...
+
+  # ── Build + sign + SBOM ───────────────────────────────────────────────────
   release:
+    needs: [govulncheck, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           cache: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Install syft (for SBOM generation)
+        uses: anchore/sbom-action/download-syft@v0
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -31,3 +67,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+
+      # SLSA provenance — cryptographic attestation that GitHub Actions
+      # built these exact artifacts from this exact source commit
+      - name: Generate SLSA provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            dist/agit_linux_amd64/agit
+            dist/agit_linux_arm64/agit
+            dist/agit_darwin_amd64/agit
+            dist/agit_darwin_arm64/agit
+            dist/checksums.txt
