@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "3bd8398",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "fix go install command",
+  "intent": "go.mod declared module as github.com/madhurm/agit but the repo lives at github.com/Madhurr/agit — go install fails with version constraints conflict",
+  "confidence": 0.99,
+  "confidence_rationale": "root cause confirmed by running go install and reading the error. one-line fix in go.mod + find/replace across all .go files",
+  "alternatives_considered": [
+    { "approach": "rename GitHub repo to madhurm", "rejected_reason": "changes public URL, breaks existing links" }
+  ],
+  "risks": [
+    { "area": "proxy-cache", "description": "Go module proxy caches old v0.2.0 with wrong path — @latest will fail until cache expires (~48h)", "severity": "medium" }
+  ],
+  "unknowns": [],
+  "ripple_effects": ["go.sum must be regenerated", "all internal imports updated"]
+}
