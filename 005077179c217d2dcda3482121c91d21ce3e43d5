@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "0050771",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "make install command work for users right now",
+  "intent": "point README at @v0.3.0 explicitly until Go module proxy expires the bad v0.2.0 cache — @latest resolves to highest semantic version and v0.2.0 has wrong module path",
+  "confidence": 0.97,
+  "confidence_rationale": "tested both @latest (fails) and @v0.3.0 (works) locally",
+  "alternatives_considered": [
+    { "approach": "wait for proxy cache to expire", "rejected_reason": "leaves README broken for 48h" }
+  ],
+  "risks": [
+    { "area": "maintenance", "description": "README will need updating to @latest once proxy cache clears", "severity": "low" }
+  ],
+  "unknowns": ["exact time for Go proxy cache to expire"],
+  "ripple_effects": []
+}
