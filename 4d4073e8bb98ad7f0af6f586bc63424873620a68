@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "4d4073e",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "clean up repo before marketing",
+  "intent": "compiled JS output should not be in the repo — source is in src/, dist/ is generated",
+  "confidence": 0.99,
+  "confidence_rationale": "trivial .gitignore change",
+  "alternatives_considered": [],
+  "risks": [],
+  "unknowns": [],
+  "ripple_effects": ["github-app/dist/ will no longer be committed — CI must build before deploy"]
+}
