@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "commit_hash": "8f943f2",
+  "agent": { "id": "anton", "model": "claude-opus-4-6", "session_id": "" },
+  "task": "build agit — a git wrapper that stores AI agent reasoning in git notes",
+  "intent": "use native git notes (refs/notes/agit) so reasoning travels with the repo via push/fetch, without polluting the working tree",
+  "confidence": 0.88,
+  "confidence_rationale": "core commit/log/context/diff all work and tested. module path casing was wrong (madhurm vs Madhurr) — caught later",
+  "alternatives_considered": [
+    { "approach": "sidecar JSON files", "rejected_reason": "pollutes working tree, does not travel with push/fetch" },
+    { "approach": "commit message trailers", "rejected_reason": "size limits, unstructured, breaks log readability" },
+    { "approach": "custom git attributes", "rejected_reason": "too obscure, no tooling support" }
+  ],
+  "risks": [
+    { "area": "module-path", "description": "go.mod used wrong casing (madhurm) — breaks go install", "severity": "medium" },
+    { "area": "note-loss", "description": "git notes do not survive rebase by default — agit init configures notes.rewriteRef to fix this", "severity": "low" }
+  ],
+  "unknowns": [
+    "how many teams will adopt this vs just read it and move on",
+    "whether GitHub will ever render git notes natively"
+  ],
+  "ripple_effects": []
+}
