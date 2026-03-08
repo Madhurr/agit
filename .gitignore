@@ -5,3 +5,4 @@ github-app/dist/
 *.pem
 dist/
 .claude/
+github-app/dist/
