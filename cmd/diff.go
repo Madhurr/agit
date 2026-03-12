@@ -219,17 +219,17 @@ func printResolved(c drift.FieldDiff) {
 
 func fieldLabel(field string) string {
 	labels := map[string]string{
-		"intent":                "Intent:",
-		"confidence":            "Confidence:",
-		"confidence_rationale":  "Rationale:",
-		"task":                  "Task:",
-		"agent":                 "Agent:",
-		"risks":                 "Risk:",
-		"unknowns":              "Unknown:",
-		"alternatives":          "Alternative:",
-		"ripple_effects":        "Ripple:",
-		"key_decisions":         "Decision:",
-		"test_results":          "Tests:",
+		"intent":               "Intent:",
+		"confidence":           "Confidence:",
+		"confidence_rationale": "Rationale:",
+		"task":                 "Task:",
+		"agent":                "Agent:",
+		"risks":                "Risk:",
+		"unknowns":             "Unknown:",
+		"alternatives":         "Alternative:",
+		"ripple_effects":       "Ripple:",
+		"key_decisions":        "Decision:",
+		"test_results":         "Tests:",
 	}
 	if label, ok := labels[field]; ok {
 		return label

@@ -3,11 +3,15 @@ package notes
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/Madhurr/agit/internal/git"
 )
+
+// ErrNotFound is returned by Read when no agit note exists for a commit.
+var ErrNotFound = errors.New("no agit note found")
 
 // Alternative represents an approach the agent considered but rejected.
 type Alternative struct {
@@ -73,13 +77,14 @@ func Write(dir, commitHash string, note *CommitNote) error {
 }
 
 // Read retrieves and deserializes the agit note for commitHash.
-// Returns (nil, nil) if no note exists — not an error.
+// Returns (nil, ErrNotFound) if no note exists for the commit.
+// Returns (nil, err) for unexpected git or JSON errors.
 func Read(dir, commitHash string) (*CommitNote, error) {
 	out, err := git.RunGit(dir, "notes", "--ref=agit", "show", commitHash)
 	if err != nil {
 		if strings.Contains(err.Error(), "No note found") ||
 			strings.Contains(err.Error(), "no note found") {
-			return nil, nil
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -92,8 +97,8 @@ func Read(dir, commitHash string) (*CommitNote, error) {
 
 // Exists returns true if an agit note exists for commitHash.
 func Exists(dir, commitHash string) bool {
-	note, err := Read(dir, commitHash)
-	return err == nil && note != nil
+	_, err := Read(dir, commitHash)
+	return err == nil
 }
 
 // Delete removes the agit note for commitHash.

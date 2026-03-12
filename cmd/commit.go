@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
 	"github.com/Madhurr/agit/internal/git"
 	"github.com/Madhurr/agit/internal/notes"
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
 var commitCmd = &cobra.Command{
@@ -22,7 +22,7 @@ var commitCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(commitCmd)
-	
+
 	// Required flag
 	commitCmd.Flags().StringP("message", "m", "", "commit message (required)")
 	_ = commitCmd.MarkFlagRequired("message")
@@ -36,7 +36,7 @@ func init() {
 	commitCmd.Flags().String("task", "", "the original human prompt/task")
 	commitCmd.Flags().StringArray("unknowns", []string{}, "things agent was unsure about (repeatable)")
 	commitCmd.Flags().StringArray("ripple", []string{}, "files noticed but not changed (repeatable)")
-	
+
 	// Default environment-based flags
 	agentID := os.Getenv("AGIT_AGENT_ID")
 	if agentID == "" {
@@ -51,7 +51,7 @@ func init() {
 	commitCmd.Flags().String("agent-id", agentID, "agent identifier")
 	commitCmd.Flags().String("agent-model", agentModel, "model name")
 	commitCmd.Flags().String("session-id", sessionID, "session identifier")
-	
+
 	// JSON note input
 	commitCmd.Flags().String("json-note", "", "path to JSON file OR \"-\" to read from stdin")
 }
@@ -153,7 +153,7 @@ func runCommit(cmd *cobra.Command, args []string) error {
 	if err := git.StageAll(dir); err != nil {
 		return fmt.Errorf("failed to stage files: %w", err)
 	}
-	
+
 	commitHash, err := git.CommitWithMessage(dir, message)
 	if err != nil {
 		return fmt.Errorf("failed to create commit: %w", err)
@@ -171,11 +171,11 @@ func runCommit(cmd *cobra.Command, args []string) error {
 	// Print success message with colors
 	shortHash := commitHash[:7]
 	color.Green("✓ Committed: " + shortHash)
-	
+
 	if intent != "" {
 		color.Cyan("  intent: " + intent)
 	}
-	
+
 	if confidence > 0 {
 		confStr := strconv.FormatFloat(confidence, 'f', -1, 64)
 		color.Cyan("  confidence: " + confStr)

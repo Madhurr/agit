@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/Madhurr/agit/internal/git"
 	"github.com/Madhurr/agit/internal/notes"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -50,12 +51,12 @@ func runContextShow(cmd *cobra.Command, args []string) error {
 	}
 
 	note, err := notes.Read(dir, commitHash)
-	if err != nil {
-		return err
-	}
-	if note == nil {
+	if errors.Is(err, notes.ErrNotFound) {
 		fmt.Printf("No agit note found for %s. Commit was not made with agit.\n", commitHash)
 		return nil
+	}
+	if err != nil {
+		return err
 	}
 
 	if contextJsonOutput {

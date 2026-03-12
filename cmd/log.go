@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/Madhurr/agit/internal/git"
 	"github.com/Madhurr/agit/internal/notes"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -20,11 +20,10 @@ type LogOutput struct {
 var logCmd = &cobra.Command{
 	Use:   "log",
 	Short: "Show semantic git log with agit notes",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		dir, err := os.Getwd()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error getting working directory: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("getting working directory: %w", err)
 		}
 
 		count, _ := cmd.Flags().GetInt("count")
@@ -32,8 +31,7 @@ var logCmd = &cobra.Command{
 
 		commits, err := git.Log(dir, count)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error getting log: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("getting log: %w", err)
 		}
 
 		var outputs []LogOutput
@@ -51,11 +49,11 @@ var logCmd = &cobra.Command{
 		if jsonOutput {
 			jsonData, err := json.MarshalIndent(outputs, "", "  ")
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error generating JSON: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("generating JSON: %w", err)
 			}
 			fmt.Println(string(jsonData))
 		}
+		return nil
 	},
 }
 

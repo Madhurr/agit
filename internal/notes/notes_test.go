@@ -1,6 +1,7 @@
 package notes_test
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -131,8 +132,8 @@ func TestReadNilForMissingNote(t *testing.T) {
 	hash := headHash(t, dir)
 
 	got, err := notes.Read(dir, hash)
-	if err != nil {
-		t.Fatalf("Read on missing note: expected nil error, got %v", err)
+	if !errors.Is(err, notes.ErrNotFound) {
+		t.Fatalf("Read on missing note: expected ErrNotFound, got %v", err)
 	}
 	if got != nil {
 		t.Fatalf("Read on missing note: expected nil, got %+v", got)

@@ -25,20 +25,20 @@ type FieldDiff struct {
 	Kind     ChangeKind `json:"kind"`
 	Old      string     `json:"old,omitempty"`
 	New      string     `json:"new,omitempty"`
-	Detail   string     `json:"detail,omitempty"` // human-readable summary
+	Detail   string     `json:"detail,omitempty"`   // human-readable summary
 	Severity string     `json:"severity,omitempty"` // for risk changes
 }
 
 // DiffResult holds the full semantic diff between two commits.
 type DiffResult struct {
-	FromHash    string      `json:"from_hash"`
-	ToHash      string      `json:"to_hash"`
-	FromNote    bool        `json:"from_has_note"`
-	ToNote      bool        `json:"to_has_note"`
-	Changes     []FieldDiff `json:"changes"`
-	FilesAdded  []string    `json:"files_added,omitempty"`
-	FilesRemoved []string   `json:"files_removed,omitempty"`
-	Summary     string      `json:"summary"`
+	FromHash     string      `json:"from_hash"`
+	ToHash       string      `json:"to_hash"`
+	FromNote     bool        `json:"from_has_note"`
+	ToNote       bool        `json:"to_has_note"`
+	Changes      []FieldDiff `json:"changes"`
+	FilesAdded   []string    `json:"files_added,omitempty"`
+	FilesRemoved []string    `json:"files_removed,omitempty"`
+	Summary      string      `json:"summary"`
 }
 
 // Diff computes the semantic difference between two CommitNotes.
